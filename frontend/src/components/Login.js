@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
-const Register = () => {
+const Login = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
-        username: '',
         email: '',
         password: '',
     });
 
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
 
     const handleChange = (e) => {
@@ -27,24 +26,16 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setSuccess('');
-
-        // Validar la contraseña en el front-end
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/;
-        if (!passwordRegex.test(formData.password)) {
-            setError('La contraseña debe tener al menos 8 caracteres, incluyendo letras mayúsculas, minúsculas y números.');
-            return;
-        }
 
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/register', formData);
-            setSuccess(response.data.msg);
-            setFormData({ username: '', email: '', password: '' });
+            const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+            localStorage.setItem('token', response.data.token); // Guardar el token en localStorage
+            navigate('/dashboard'); // Redirigir al usuario al dashboard
         } catch (err) {
-            if (err.response && err.response.data && err.response.data.msg) {
-                setError(err.response.data.msg);
+            if (err.response && err.response.data && err.response.data.message) {
+                setError(err.response.data.message);
             } else {
-                setError('Error al registrar el usuario.');
+                setError('Error al iniciar sesión.');
             }
         }
     };
@@ -52,22 +43,9 @@ const Register = () => {
     return (
         <div className="flex items-center justify-center min-h-screen bg-gray-100">
             <div className="w-full max-w-md p-8 space-y-3 bg-white rounded shadow">
-                <h1 className="text-2xl font-bold text-center">Registro de Usuario</h1>
+                <h1 className="text-2xl font-bold text-center">Iniciar Sesión</h1>
                 {error && <div className="p-2 text-red-700 bg-red-200 border border-red-700 rounded">{error}</div>}
-                {success && <div className="p-2 text-green-700 bg-green-200 border border-green-700 rounded">{success}</div>}
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label htmlFor="username" className="block mb-1">Nombre de Usuario</label>
-                        <input
-                            type="text"
-                            name="username"
-                            id="username"
-                            value={formData.username}
-                            onChange={handleChange}
-                            required
-                            className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
-                        />
-                    </div>
                     <div>
                         <label htmlFor="email" className="block mb-1">Correo Electrónico</label>
                         <input
@@ -99,23 +77,20 @@ const Register = () => {
                         >
                             {showPassword ? 'Ocultar' : 'Mostrar'}
                         </button>
-                        <p className="text-sm text-gray-600 mt-2">
-                            La contraseña debe tener al menos 8 caracteres, incluyendo letras mayúsculas, minúsculas y números.
-                        </p>
                     </div>
                     <button
                         type="submit"
                         className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded hover:bg-blue-700"
                     >
-                        Registrarse
+                        Iniciar Sesión
                     </button>
                 </form>
                 <p className="text-center text-sm text-gray-600">
-                    ¿Ya tienes una cuenta? <Link to="/login" className="text-blue-600 hover:underline">Inicia Sesión</Link>
+                    ¿No tienes una cuenta? <Link to="/register" className="text-blue-600 hover:underline">Regístrate</Link>
                 </p>
             </div>
         </div>
     );
 };
 
-export default Register;
+export default Login;
