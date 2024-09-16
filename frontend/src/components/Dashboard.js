@@ -1,4 +1,3 @@
-// frontend/src/components/Dashboard.js
 import React, { useEffect, useState, useRef } from 'react';
 import axiosInstance from '../utils/axiosConfig';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +5,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-// Componente NavBar con opción de cerrar sesión y menú desplegable de géneros
+// Componente NavBar
 const NavBar = ({ handleLogout }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -68,20 +67,56 @@ const NavBar = ({ handleLogout }) => {
 const Carousel = ({ category, stories }) => {
     const settings = {
         dots: false,
-        infinite: true,
+        infinite: false,
         speed: 500,
-        slidesToShow: 4,
-        slidesToScroll: 4,
+        slidesToShow: 5, // Mostramos 5 slides al mismo tiempo
+        slidesToScroll: 5,
+        arrows: true,
+        responsive: [
+            {
+                breakpoint: 1024,
+                settings: {
+                    slidesToShow: 3,
+                    slidesToScroll: 3,
+                    infinite: true,
+                    dots: true
+                }
+            },
+            {
+                breakpoint: 600,
+                settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 2,
+                    initialSlide: 2
+                }
+            },
+            {
+                breakpoint: 480,
+                settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1
+                }
+            }
+        ]
     };
 
     return (
-        <div>
-            <h2 className="text-xl font-bold mb-4">{category}</h2>
+        <div className="carousel-container mb-8">
+            <h2 className="text-2xl font-bold mb-4">{category}</h2>
             <Slider {...settings}>
                 {stories.map((story, i) => (
                     <div key={i} className="px-2">
-                        <img src={story.image} alt={story.title} className="rounded-lg" />
-                        <p className="text-white mt-2">{story.title}</p>
+                        <div className="story-card hover-card">
+                            <img
+                                src={story.image}
+                                alt={story.title}
+                                className="w-full h-full object-cover rounded-lg"
+                            />
+                            <div className="story-info">
+                                <h3 className="story-title">{story.title}</h3>
+                                <p className="story-description">{story.description}</p>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </Slider>
@@ -89,7 +124,7 @@ const Carousel = ({ category, stories }) => {
     );
 };
 
-// Componente para el banner
+// Componente Banner
 const Banner = ({ imageUrl }) => {
     return (
         <div className="w-full h-64 my-8">
@@ -106,7 +141,7 @@ const Dashboard = () => {
     const [message, setMessage] = useState('');
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
-    const [categories, setCategories] = useState([]); // Asegúrate de que sea un array vacío
+    const [stories, setStories] = useState([]); // Cambiado de categories a stories, ya que las historias pueden no estar agrupadas inicialmente
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -122,19 +157,19 @@ const Dashboard = () => {
 
         const fetchStories = async () => {
             try {
-                const token = localStorage.getItem('token'); // O sessionStorage, dependiendo de dónde almacenes el token
+                const token = localStorage.getItem('token'); // Obtener el token
                 const config = {
                     headers: {
-                        Authorization: `Bearer ${token}`, // Asegúrate de que el formato sea el correcto
+                        Authorization: `Bearer ${token}`, 
                     }
                 };
-                const response = await axiosInstance.get('/api/stories', config); // Incluye el token en la cabecera
+                const response = await axiosInstance.get('/api/stories', config); 
                 console.log('Respuesta de la API:', response.data);
-
-                if (response.data.categories) {
-                    setCategories(response.data.categories); // Asegúrate de que la API devuelva las categorías correctamente
+        
+                if (response.data && Array.isArray(response.data)) {
+                    setStories(response.data); // Guardar las historias
                 } else {
-                    setCategories([]);
+                    setStories([]); // En caso de que la respuesta no sea válida
                 }
             } catch (err) {
                 console.error('Error al obtener historias:', err);
@@ -142,12 +177,27 @@ const Dashboard = () => {
         };
 
         fetchProtectedData();
-        fetchStories(); // Obtener historias al montar el componente
+        fetchStories(); 
     }, []);
 
     const handleLogout = () => {
         localStorage.removeItem('token');
-        navigate('/login'); // Redirigir al login
+        navigate('/login');
+    };
+
+    // Función para agrupar las historias por categorías
+    const groupStoriesByCategory = (stories) => {
+        const categories = {};
+
+        stories.forEach((story) => {
+            const category = story.genre || 'Otros'; // Asegúrate de que cada historia tenga un campo de género
+            if (!categories[category]) {
+                categories[category] = [];
+            }
+            categories[category].push(story);
+        });
+
+        return Object.entries(categories); // Devuelve un arreglo de pares [categoría, historias]
     };
 
     return (
@@ -161,11 +211,11 @@ const Dashboard = () => {
 
                 <Banner imageUrl="https://example.com/imagen-del-banner.jpg" />
 
-                {/* Verifica si hay categorías antes de hacer el map */}
-                {categories && categories.length > 0 ? (
-                    categories.map((categoryData, index) => (
+                {/* Agrupar historias por categorías antes de mostrarlas */}
+                {stories.length > 0 ? (
+                    groupStoriesByCategory(stories).map(([category, stories], index) => (
                         <div key={index} className="mb-12">
-                            <Carousel category={categoryData.category} stories={categoryData.stories} />
+                            <Carousel category={category} stories={stories} />
                         </div>
                     ))
                 ) : (
