@@ -3,7 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
-
+const bodyParser = require('body-parser');
 
 dotenv.config();
 
@@ -15,6 +15,7 @@ app.use(cors({
     origin: 'http://localhost:3000', // Permitir solo el front-end
 }));
 app.use(express.json());
+app.use(bodyParser.json());
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGO_URI, {
@@ -31,6 +32,10 @@ app.use('/api/auth', authRoutes);
 app.get('/', (req, res) => {
     res.send('API de CollabStories funcionando');
 });
+
+
+const storyRoutes = require('./routes/stories');
+app.use('/api/stories', storyRoutes);
 
 // Iniciar servidor
 app.listen(PORT, () => {

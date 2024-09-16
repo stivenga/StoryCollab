@@ -11,7 +11,6 @@ const NavBar = ({ handleLogout }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
 
-    // Función para controlar el clic fuera del dropdown
     useEffect(() => {
         const handleOutsideClick = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -33,8 +32,6 @@ const NavBar = ({ handleLogout }) => {
     return (
         <nav className="bg-black p-4 text-white flex justify-between items-center relative">
             <h1 className="text-2xl font-bold">TuApp</h1>
-
-            {/* Botón de géneros */}
             <div className="relative" ref={dropdownRef}>
                 <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -42,8 +39,6 @@ const NavBar = ({ handleLogout }) => {
                 >
                     Géneros
                 </button>
-
-                {/* Dropdown de géneros */}
                 {isDropdownOpen && (
                     <div className="absolute right-0 mt-2 w-64 bg-gray-900 text-white rounded shadow-lg z-10">
                         <div className="grid grid-cols-3 p-4">
@@ -60,7 +55,6 @@ const NavBar = ({ handleLogout }) => {
                     </div>
                 )}
             </div>
-
             <div>
                 <button onClick={handleLogout} className="bg-red-600 px-3 py-2 rounded">
                     Cerrar sesión
@@ -86,7 +80,7 @@ const Carousel = ({ category, stories }) => {
             <Slider {...settings}>
                 {stories.map((story, i) => (
                     <div key={i} className="px-2">
-                        <img src={story.img} alt={story.title} className="rounded-lg" />
+                        <img src={story.image} alt={story.title} className="rounded-lg" />
                         <p className="text-white mt-2">{story.title}</p>
                     </div>
                 ))}
@@ -112,25 +106,8 @@ const Dashboard = () => {
     const [message, setMessage] = useState('');
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
+    const [categories, setCategories] = useState([]); // Asegúrate de que sea un array vacío
     const navigate = useNavigate();
-
-    // Historias por categorías (simuladas, puedes reemplazar con una llamada a API)
-    const categories = [
-        {
-            category: "Acción",
-            stories: [
-                { title: "Historia 1", img: "url-de-imagen-1" },
-                { title: "Historia 2", img: "url-de-imagen-2" },
-            ],
-        },
-        {
-            category: "Drama",
-            stories: [
-                { title: "Historia 3", img: "url-de-imagen-3" },
-                { title: "Historia 4", img: "url-de-imagen-4" },
-            ],
-        },
-    ];
 
     useEffect(() => {
         const fetchProtectedData = async () => {
@@ -143,7 +120,29 @@ const Dashboard = () => {
             }
         };
 
+        const fetchStories = async () => {
+            try {
+                const token = localStorage.getItem('token'); // O sessionStorage, dependiendo de dónde almacenes el token
+                const config = {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Asegúrate de que el formato sea el correcto
+                    }
+                };
+                const response = await axiosInstance.get('/api/stories', config); // Incluye el token en la cabecera
+                console.log('Respuesta de la API:', response.data);
+
+                if (response.data.categories) {
+                    setCategories(response.data.categories); // Asegúrate de que la API devuelva las categorías correctamente
+                } else {
+                    setCategories([]);
+                }
+            } catch (err) {
+                console.error('Error al obtener historias:', err);
+            }
+        };
+
         fetchProtectedData();
+        fetchStories(); // Obtener historias al montar el componente
     }, []);
 
     const handleLogout = () => {
@@ -153,24 +152,25 @@ const Dashboard = () => {
 
     return (
         <div className="bg-black min-h-screen text-white">
-            {/* NavBar con menú de géneros */}
             <NavBar handleLogout={handleLogout} />
 
             <div className="container mx-auto py-8">
-                {/* Mensaje de bienvenida */}
                 {user && <h1 className="text-3xl font-bold mb-6">Bienvenido, {user.name}</h1>}
                 {message && <p className="text-center mb-4">{message}</p>}
                 {error && <div className="p-2 text-red-700 bg-red-200 border border-red-700 rounded">{error}</div>}
 
-                {/* Banner debajo del mensaje de bienvenida */}
                 <Banner imageUrl="https://example.com/imagen-del-banner.jpg" />
 
-                {/* Carruseles de categorías */}
-                {categories.map((categoryData, index) => (
-                    <div key={index} className="mb-12">
-                        <Carousel category={categoryData.category} stories={categoryData.stories} />
-                    </div>
-                ))}
+                {/* Verifica si hay categorías antes de hacer el map */}
+                {categories && categories.length > 0 ? (
+                    categories.map((categoryData, index) => (
+                        <div key={index} className="mb-12">
+                            <Carousel category={categoryData.category} stories={categoryData.stories} />
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-center text-gray-400">No hay historias disponibles.</p>
+                )}
             </div>
         </div>
     );
