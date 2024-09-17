@@ -4,10 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+import Modal from './Modal'; 
+import './Dashboard.css';
+
 
 // Componente NavBar
-const NavBar = ({ handleLogout }) => {
+const NavBar = ({ handleLogout, onSearch }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -28,9 +32,23 @@ const NavBar = ({ handleLogout }) => {
         ['Música y musicales', 'Para reír', 'Para ver en familia', 'Policiacas', 'Romances', 'Sci-fi', 'Terror'],
     ];
 
+    const handleSearch = (event) => {
+        setSearchTerm(event.target.value);
+        onSearch(event.target.value); // Llamar a la función de búsqueda al escribir
+    };
+
     return (
         <nav className="bg-black p-4 text-white flex justify-between items-center relative">
             <h1 className="text-2xl font-bold">TuApp</h1>
+
+            <input
+                type="text"
+                value={searchTerm}
+                onChange={handleSearch}
+                placeholder="Buscar historias..."
+                className="px-4 py-2 rounded bg-gray-800 text-white focus:outline-none"
+            />
+
             <div className="relative" ref={dropdownRef}>
                 <button
                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -64,7 +82,7 @@ const NavBar = ({ handleLogout }) => {
 };
 
 // Componente para el carrusel de historias por categoría
-const Carousel = ({ category, stories }) => {
+const Carousel = ({ category, stories, onStoryClick }) => {
     const settings = {
         dots: false,
         infinite: false,
@@ -105,7 +123,7 @@ const Carousel = ({ category, stories }) => {
             <h2 className="text-2xl font-bold mb-4">{category}</h2>
             <Slider {...settings}>
                 {stories.map((story, i) => (
-                    <div key={i} className="px-2">
+                    <div key={i} className="px-2" onClick={() => onStoryClick(story)}>
                         <div className="story-card hover-card">
                             <img
                                 src={story.image}
@@ -141,7 +159,9 @@ const Dashboard = () => {
     const [message, setMessage] = useState('');
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
-    const [stories, setStories] = useState([]); // Cambiado de categories a stories, ya que las historias pueden no estar agrupadas inicialmente
+    const [stories, setStories] = useState([]);
+    const [filteredStories, setFilteredStories] = useState([]); // Para el filtro
+    const [modalStory, setModalStory] = useState(null); // Historia seleccionada para el modal
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -167,9 +187,11 @@ const Dashboard = () => {
                 console.log('Respuesta de la API:', response.data);
         
                 if (response.data && Array.isArray(response.data)) {
-                    setStories(response.data); // Guardar las historias
+                    setStories(response.data);
+                    setFilteredStories(response.data); // Inicialmente no filtrado
                 } else {
-                    setStories([]); // En caso de que la respuesta no sea válida
+                    setStories([]);
+                    setFilteredStories([]);
                 }
             } catch (err) {
                 console.error('Error al obtener historias:', err);
@@ -190,19 +212,37 @@ const Dashboard = () => {
         const categories = {};
 
         stories.forEach((story) => {
-            const category = story.genre || 'Otros'; // Asegúrate de que cada historia tenga un campo de género
+            const category = story.genre || 'Otros';
             if (!categories[category]) {
                 categories[category] = [];
             }
             categories[category].push(story);
         });
 
-        return Object.entries(categories); // Devuelve un arreglo de pares [categoría, historias]
+        return Object.entries(categories);
+    };
+
+    // Filtrar historias por título o descripción
+    const handleSearch = (searchTerm) => {
+        if (!searchTerm) {
+            setFilteredStories(stories); // Restaurar si no hay término
+        } else {
+            const filtered = stories.filter((story) =>
+                story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                story.description.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            setFilteredStories(filtered);
+        }
+    };
+
+    // Mostrar el modal con los detalles de una historia
+    const handleStoryClick = (story) => {
+        setModalStory(story);
     };
 
     return (
         <div className="bg-black min-h-screen text-white">
-            <NavBar handleLogout={handleLogout} />
+            <NavBar handleLogout={handleLogout} onSearch={handleSearch} />
 
             <div className="container mx-auto py-8">
                 {user && <h1 className="text-3xl font-bold mb-6">Bienvenido, {user.name}</h1>}
@@ -211,17 +251,23 @@ const Dashboard = () => {
 
                 <Banner imageUrl="https://example.com/imagen-del-banner.jpg" />
 
-                {/* Agrupar historias por categorías antes de mostrarlas */}
-                {stories.length > 0 ? (
-                    groupStoriesByCategory(stories).map(([category, stories], index) => (
-                        <div key={index} className="mb-12">
-                            <Carousel category={category} stories={stories} />
-                        </div>
+                {filteredStories.length > 0 ? (
+                    groupStoriesByCategory(filteredStories).map(([category, stories]) => (
+                        <Carousel
+                            key={category}
+                            category={category}
+                            stories={stories}
+                            onStoryClick={handleStoryClick} // Abrir modal al hacer clic
+                        />
                     ))
                 ) : (
-                    <p className="text-center text-gray-400">No hay historias disponibles.</p>
+                    <p>No se encontraron historias.</p>
                 )}
             </div>
+
+            {modalStory && (
+                <Modal onClose={() => setModalStory(null)} story={modalStory} />
+            )}
         </div>
     );
 };
