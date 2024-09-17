@@ -7,9 +7,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import Modal from './Modal'; 
 import './Dashboard.css';
 
-
-// Componente NavBar
-const NavBar = ({ handleLogout, onSearch }) => {
+const NavBar = ({ handleLogout, onSearch, onGenreClick }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const dropdownRef = useRef(null);
@@ -34,7 +32,7 @@ const NavBar = ({ handleLogout, onSearch }) => {
 
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
-        onSearch(event.target.value); // Llamar a la función de búsqueda al escribir
+        onSearch(event.target.value);
     };
 
     return (
@@ -62,7 +60,14 @@ const NavBar = ({ handleLogout, onSearch }) => {
                             {genres.map((column, index) => (
                                 <div key={index} className="space-y-2">
                                     {column.map((genre, i) => (
-                                        <button key={i} className="block hover:underline text-left">
+                                        <button
+                                            key={i}
+                                            className="block hover:underline text-left"
+                                            onClick={() => {
+                                                onGenreClick(genre); // Filtrar historias por género
+                                                setIsDropdownOpen(false); // Cerrar el dropdown
+                                            }}
+                                        >
                                             {genre}
                                         </button>
                                     ))}
@@ -87,7 +92,7 @@ const Carousel = ({ category, stories, onStoryClick }) => {
         dots: false,
         infinite: false,
         speed: 500,
-        slidesToShow: 5, // Mostramos 5 slides al mismo tiempo
+        slidesToShow: 5, 
         slidesToScroll: 5,
         arrows: true,
         responsive: [
@@ -160,8 +165,8 @@ const Dashboard = () => {
     const [user, setUser] = useState(null);
     const [error, setError] = useState('');
     const [stories, setStories] = useState([]);
-    const [filteredStories, setFilteredStories] = useState([]); // Para el filtro
-    const [modalStory, setModalStory] = useState(null); // Historia seleccionada para el modal
+    const [filteredStories, setFilteredStories] = useState([]); 
+    const [modalStory, setModalStory] = useState(null); 
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -177,18 +182,18 @@ const Dashboard = () => {
 
         const fetchStories = async () => {
             try {
-                const token = localStorage.getItem('token'); // Obtener el token
+                const token = localStorage.getItem('token');
                 const config = {
                     headers: {
                         Authorization: `Bearer ${token}`, 
                     }
                 };
-                const response = await axiosInstance.get('/api/stories', config); 
+                const response = await axiosInstance.get('/api/stories', config);
                 console.log('Respuesta de la API:', response.data);
         
                 if (response.data && Array.isArray(response.data)) {
                     setStories(response.data);
-                    setFilteredStories(response.data); // Inicialmente no filtrado
+                    setFilteredStories(response.data); 
                 } else {
                     setStories([]);
                     setFilteredStories([]);
@@ -207,7 +212,7 @@ const Dashboard = () => {
         navigate('/login');
     };
 
-    // Función para agrupar las historias por categorías
+    // Agrupar historias por categorías
     const groupStoriesByCategory = (stories) => {
         const categories = {};
 
@@ -222,52 +227,52 @@ const Dashboard = () => {
         return Object.entries(categories);
     };
 
-    // Filtrar historias por título o descripción
+    // Filtrar historias por título, descripción, género o tipo
     const handleSearch = (searchTerm) => {
         if (!searchTerm) {
-            setFilteredStories(stories); // Restaurar si no hay término
+            setFilteredStories(stories); 
         } else {
-            const filtered = stories.filter((story) =>
-                story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                story.description.toLowerCase().includes(searchTerm.toLowerCase())
-            );
+            const filtered = stories.filter((story) => {
+                const title = story.title ? story.title.toLowerCase() : '';
+                const description = story.description ? story.description.toLowerCase() : '';
+                const genre = story.genre ? story.genre.toLowerCase() : '';  
+                const type = story.type ? story.type.toLowerCase() : '';      
+                return (
+                    title.includes(searchTerm.toLowerCase()) ||
+                    description.includes(searchTerm.toLowerCase()) ||
+                    genre.includes(searchTerm.toLowerCase()) ||
+                    type.includes(searchTerm.toLowerCase())
+                );
+            });
             setFilteredStories(filtered);
         }
     };
 
-    // Mostrar el modal con los detalles de una historia
+    // Filtrar historias por género
+    const handleGenreClick = (genre) => {
+        const filtered = stories.filter((story) => {
+            return story.genre && story.genre.toLowerCase() === genre.toLowerCase();
+        });
+        setFilteredStories(filtered);
+    };
+
     const handleStoryClick = (story) => {
         setModalStory(story);
     };
 
     return (
         <div className="bg-black min-h-screen text-white">
-            <NavBar handleLogout={handleLogout} onSearch={handleSearch} />
+            <NavBar handleLogout={handleLogout} onSearch={handleSearch} onGenreClick={handleGenreClick} />
 
-            <div className="container mx-auto py-8">
-                {user && <h1 className="text-3xl font-bold mb-6">Bienvenido, {user.name}</h1>}
-                {message && <p className="text-center mb-4">{message}</p>}
-                {error && <div className="p-2 text-red-700 bg-red-200 border border-red-700 rounded">{error}</div>}
+            <div className="container mx-auto px-4">
+                <Banner imageUrl="https://www.xtrafondos.com/wallpapers/ultra/film-red-one-piece-luffy-11515.jpg" />
 
-                <Banner imageUrl="https://example.com/imagen-del-banner.jpg" />
+                {groupStoriesByCategory(filteredStories).map(([category, stories], i) => (
+                    <Carousel key={i} category={category} stories={stories} onStoryClick={handleStoryClick} />
+                ))}
 
-                {filteredStories.length > 0 ? (
-                    groupStoriesByCategory(filteredStories).map(([category, stories]) => (
-                        <Carousel
-                            key={category}
-                            category={category}
-                            stories={stories}
-                            onStoryClick={handleStoryClick} // Abrir modal al hacer clic
-                        />
-                    ))
-                ) : (
-                    <p>No se encontraron historias.</p>
-                )}
+                <Modal story={modalStory} onClose={() => setModalStory(null)} />
             </div>
-
-            {modalStory && (
-                <Modal onClose={() => setModalStory(null)} story={modalStory} />
-            )}
         </div>
     );
 };
