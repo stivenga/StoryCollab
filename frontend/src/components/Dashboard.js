@@ -11,6 +11,7 @@ const NavBar = ({ handleLogout, onSearch, onGenreClick }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const dropdownRef = useRef(null);
+    const navigate = useNavigate(); // Hook para la navegación
 
     useEffect(() => {
         const handleOutsideClick = (event) => {
@@ -33,6 +34,11 @@ const NavBar = ({ handleLogout, onSearch, onGenreClick }) => {
     const handleSearch = (event) => {
         setSearchTerm(event.target.value);
         onSearch(event.target.value);
+    };
+
+    // Función para navegar a la página de creación de historias
+    const handleCreateStory = () => {
+        navigate('/crear-historia'); // Redirige a la página de creación de historia
     };
 
     return (
@@ -77,8 +83,18 @@ const NavBar = ({ handleLogout, onSearch, onGenreClick }) => {
                     </div>
                 )}
             </div>
-            <div>
-                <button onClick={handleLogout} className="bg-red-600 px-3 py-2 rounded">
+
+            <div className="flex space-x-4">
+                <button 
+                    onClick={handleCreateStory} 
+                    className="bg-green-600 px-3 py-2 rounded hover:bg-green-500"
+                >
+                    Crear historia
+                </button>
+                <button 
+                    onClick={handleLogout} 
+                    className="bg-red-600 px-3 py-2 rounded hover:bg-red-500"
+                >
                     Cerrar sesión
                 </button>
             </div>
@@ -264,15 +280,21 @@ const Dashboard = () => {
         <div className="bg-black min-h-screen text-white">
             <NavBar handleLogout={handleLogout} onSearch={handleSearch} onGenreClick={handleGenreClick} />
 
-            <div className="container mx-auto px-4">
-                <Banner imageUrl="https://www.xtrafondos.com/wallpapers/ultra/film-red-one-piece-luffy-11515.jpg" />
+            {error && <p>{error}</p>}
 
-                {groupStoriesByCategory(filteredStories).map(([category, stories], i) => (
-                    <Carousel key={i} category={category} stories={stories} onStoryClick={handleStoryClick} />
+            <div className="px-4 py-8">
+                <h1 className="text-4xl font-bold mb-8">Bienvenido, {user?.name}</h1>
+
+                <Banner imageUrl="https://via.placeholder.com/1200x400" />
+
+                {groupStoriesByCategory(filteredStories).map(([category, stories]) => (
+                    <Carousel key={category} category={category} stories={stories} onStoryClick={handleStoryClick} />
                 ))}
-
-                <Modal story={modalStory} onClose={() => setModalStory(null)} />
             </div>
+
+            {modalStory && (
+                <Modal story={modalStory} onClose={() => setModalStory(null)} />
+            )}
         </div>
     );
 };

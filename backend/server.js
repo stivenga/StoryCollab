@@ -29,6 +29,7 @@ mongoose.connect(process.env.MONGO_URI, {
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+
 app.get('/', (req, res) => {
     res.send('API de CollabStories funcionando');
 });
@@ -36,6 +37,22 @@ app.get('/', (req, res) => {
 
 const storyRoutes = require('./routes/stories');
 app.use('/api/stories', storyRoutes);
+
+const HistoriaSchema = new mongoose.Schema({
+  titulo: String,
+  descripcion: String,
+});
+
+const Historia = mongoose.model('Historia', HistoriaSchema);
+
+// Endpoint para crear una historia
+app.post('/historias', async (req, res) => {
+  const { titulo, descripcion } = req.body;
+  const nuevaHistoria = new Historia({ titulo, descripcion });
+  await nuevaHistoria.save();
+  res.status(201).json(nuevaHistoria);
+});
+
 
 // Iniciar servidor
 app.listen(PORT, () => {

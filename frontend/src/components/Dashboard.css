@@ -1,3 +1,21 @@
+/* Ajustar el menú desplegable */
+.dropdown-menu {
+    display: grid;
+    grid-template-columns: repeat(3, auto); /* Cambia el número de columnas según tus necesidades */
+    column-gap: 20px; /* Espacio horizontal entre las columnas */
+    row-gap: 15px; /* Espacio vertical entre las filas */
+    padding: 10px;
+    min-width: 400px; /* Ajustar el ancho del menú */
+    background-color: #1b1b1b; /* Fondo oscuro */
+}
+
+/* Asegurar que los botones no se superpongan */
+.dropdown-item {
+    padding: 50px;
+    white-space: nowrap; /* Evitar que el texto se corte en varias líneas */
+}
+
+
 .dashboard-container {
     padding: 20px;
 }

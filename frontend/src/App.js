@@ -3,7 +3,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Register from './components/Register';
 import Login from './components/Login';
-import Dashboard from './components/Dashboard'; // Crearemos este componente más adelante
+import Dashboard from './components/Dashboard'; 
+import CrearHistoria from './components/Historias/CrearHistoria';
 
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
                 <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="/crear-historia" element={<CrearHistoria />} />
             </Routes>
         </Router>
     );
