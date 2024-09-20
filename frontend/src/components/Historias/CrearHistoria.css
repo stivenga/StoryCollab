@@ -43,3 +43,56 @@ button {
 button:hover {
     background-color: #45a049; /* Verde claro */
 }
+
+body {
+    background-color: #1a202c; /* Fondo oscuro */
+}
+
+.min-h-screen {
+    background-color: #111827; /* Fondo más oscuro para dar contraste */
+}
+
+input, select {
+    background-color: #2d3748; /* Fondo oscuro para campos de texto */
+    color: #e2e8f0; /* Texto claro para contraste */
+}
+
+input:focus, select:focus {
+    border-color: #38a169; /* Color de foco verde */
+}
+
+button {
+    background-color: #48bb78; /* Botón verde */
+    color: #ffffff;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #38a169; /* Cambio de color al pasar el mouse */
+}
+
+.react-quill {
+    background-color: #ffffff; /* Fondo claro para el editor de texto */
+    color: #1a202c; /* Texto oscuro en el editor */
+    border-radius: 0.5rem; /* Bordes redondeados */
+    padding: 1rem;
+    font-size: 16px; /* Tamaño de letra en el editor */
+}
+
+.react-quill .ql-container {
+    color: #000000; /* Texto negro por defecto */
+}
+
+.react-quill .ql-toolbar {
+    background-color: #edf2f7; /* Barra de herramientas clara */
+    border-bottom: 1px solid #cbd5e0; /* Separador sutil */
+}
+
+.react-quill .ql-container.ql-editor {
+    min-height: 200px; /* Ajuste de la altura mínima del área de texto */
+}
+
+.react-quill .ql-color-picker {
+    background-color: #ffffff;
+}
