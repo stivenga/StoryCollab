@@ -85,6 +85,7 @@ const NavBar = ({ handleLogout, onSearch, onGenreClick }) => {
             </div>
 
             <div className="flex space-x-4">
+                
                 <button 
                     onClick={handleCreateStory} 
                     className="bg-green-600 px-3 py-2 rounded hover:bg-green-500"

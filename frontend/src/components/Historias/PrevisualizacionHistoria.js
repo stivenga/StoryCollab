@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const PrevisualizacionHistoria = ({ title, genre, type, content, imagePreview }) => {
     return (
@@ -27,6 +28,13 @@ const PrevisualizacionHistoria = ({ title, genre, type, content, imagePreview })
                     <img src={imagePreview} alt="Previsualización de la imagen" className="mt-2" />
                 </div>
             )}
+
+                {/* Botón para ir al perfil */}
+                <div className="mt-6 flex justify-center">
+                    <Link to="/perfil-usuario" className="bg-green-600 text-white px-4 py-2 rounded-md">
+                        Ir al Perfil
+                    </Link>
+                </div>
         </div>
     );
 };
