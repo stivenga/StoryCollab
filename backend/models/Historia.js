@@ -7,7 +7,8 @@ const HistoriaSchema = new mongoose.Schema({
   genero: { type: String, required: true },
   tipo: { type: String, required: true },
   imagen: { type: String },  // Aquí se puede almacenar la ruta o URL de la imagen
-  contenido: { type: String, required: true }
+  contenido: { type: String, required: true },
+  correoUsuario: { type: String, required: true },  // <-- Añadir el campo de correo del usuario
 });
 
 module.exports = mongoose.model('Historia', HistoriaSchema);

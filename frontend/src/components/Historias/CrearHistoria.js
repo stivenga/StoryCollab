@@ -1,29 +1,30 @@
 import React, { useState } from 'react';
-import Navbar from './Navbar'; // Asegúrate de que la ruta sea correcta
+import Navbar from './Navbar';
 import { Editor } from '@tinymce/tinymce-react';
-import PrevisualizacionHistoria from './PrevisualizacionHistoria'; // Importar el componente de previsualización
+import PrevisualizacionHistoria from './PrevisualizacionHistoria';
 
 const CrearHistoria = () => {
     const [title, setTitle] = useState('');
     const [genre, setGenre] = useState('');
     const [type, setType] = useState('');
-    const [content, setContent] = useState(''); // Para almacenar el contenido del editor
-    const [image, setImage] = useState(null); // Para manejar la imagen
-    const [imagePreview, setImagePreview] = useState(null); // Para la previsualización de la imagen
-    const [showPreview, setShowPreview] = useState(false); // Estado para mostrar la previsualización
+    const [content, setContent] = useState('');
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [showPreview, setShowPreview] = useState(false);
+    const [email, setEmail] = useState(localStorage.getItem('email') || ''); // Guardar el email del usuario
 
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
-        setImage(file); // Guardar la imagen seleccionada
+        setImage(file);
 
         if (file) {
-            const previewURL = URL.createObjectURL(file); // Crear una URL para previsualizar la imagen
+            const previewURL = URL.createObjectURL(file);
             setImagePreview(previewURL);
         }
     };
 
     const handleEditorChange = (content) => {
-        setContent(content); // Manejar el contenido del editor de TinyMCE
+        setContent(content);
     };
 
     const handleSubmit = async (e) => {
@@ -32,12 +33,13 @@ const CrearHistoria = () => {
         const formData = new FormData();
         formData.append('titulo', title);
         formData.append('descripcion', content);
-        formData.append('imagen', image);  // Añadir la imagen al FormData
+        formData.append('imagen', image);
+        formData.append('email', email);  // Añadir el email al FormData
     
         try {
             const response = await fetch('http://localhost:5000/historias', {
                 method: 'POST',
-                body: formData,  // Enviar el FormData
+                body: formData,
             });
     
             if (!response.ok) {
@@ -47,7 +49,6 @@ const CrearHistoria = () => {
             const data = await response.json();
             console.log('Historia creada:', data);
 
-            // Mostrar la previsualización
             setShowPreview(true);
         } catch (error) {
             console.error('Error al crear la historia:', error.message);
@@ -63,7 +64,6 @@ const CrearHistoria = () => {
                     <h1 className="text-3xl font-bold mb-6 text-center">Crear Nueva Historia</h1>
 
                     {showPreview ? (
-                        // Mostrar previsualización si showPreview es true
                         <PrevisualizacionHistoria
                             title={title}
                             genre={genre}
@@ -112,6 +112,19 @@ const CrearHistoria = () => {
                                     value={type}
                                     onChange={(e) => setType(e.target.value)}
                                     placeholder="¿Es una serie, película, corto...?"
+                                    className="w-full p-3 bg-gray-700 rounded-md"
+                                    required
+                                />
+                            </div>
+
+                            <div className="mb-4">
+                                <label htmlFor="email" className="block text-lg mb-2">Email del Creador</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Introduce tu email"
                                     className="w-full p-3 bg-gray-700 rounded-md"
                                     required
                                 />

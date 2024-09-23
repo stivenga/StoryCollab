@@ -1,15 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode'; // Importación corregida
 
 const PerfilUsuario = () => {
     const [historias, setHistorias] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Llamada a la API para obtener las historias del usuario logueado
         const obtenerHistorias = async () => {
             try {
-                const response = await fetch('http://localhost:5000/historias/usuario/1'); // Cambia 1 por el id del usuario logueado
+                const token = localStorage.getItem('token');
+                
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+    
+                // Decodificar el token
+                const decodedToken = jwtDecode(token);
+                console.log("Token decodificado:", decodedToken); // <-- Añadir esto para inspeccionar el token
+    
+                const correoUsuario = decodedToken?.user?.email;  // Extraer el correo de forma segura
+    
+                // Verificar que el correo existe
+                console.log("Correo del usuario:", correoUsuario);
+                if (!correoUsuario) {
+                    console.error('No se ha encontrado el correo del usuario.');
+                    return;
+                }
+    
+                // Llamada a la API con el correo del usuario
+                const response = await fetch(`http://localhost:5000/api/historias/usuario/${correoUsuario}`);
                 const data = await response.json();
                 setHistorias(data);
             } catch (error) {
@@ -17,14 +38,19 @@ const PerfilUsuario = () => {
             }
         };
         obtenerHistorias();
-    }, []);
+    }, [navigate]);
+    
+    
 
     const eliminarHistoria = async (id) => {
         try {
+            const token = localStorage.getItem('token');
             await fetch(`http://localhost:5000/historias/${id}`, {
                 method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
             });
-            // Filtrar las historias para eliminar la historia borrada localmente
             setHistorias(historias.filter((historia) => historia._id !== id));
         } catch (error) {
             console.error('Error al eliminar la historia:', error);
@@ -32,14 +58,12 @@ const PerfilUsuario = () => {
     };
 
     const handleLogout = () => {
-        // Lógica para cerrar sesión, como eliminar el token de autenticación
-        localStorage.removeItem('token'); // Si usas localStorage para guardar el token
-        navigate('/login'); // Redirige al usuario a la página de inicio de sesión
+        localStorage.removeItem('token');
+        navigate('/login');
     };
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
-            {/* Navbar */}
             <nav className="bg-gray-800 text-white py-4 mb-6">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="text-2xl font-bold">
@@ -62,28 +86,38 @@ const PerfilUsuario = () => {
             </Link>
 
             <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {historias.map((historia) => (
-                    <div key={historia._id} className="bg-gray-800 p-6 rounded-lg shadow-lg">
-                        <h2 className="text-xl font-bold mb-2">{historia.titulo}</h2>
-                        <p className="text-gray-400">{historia.descripcion.substring(0, 100)}...</p>
+                {historias.length > 0 ? (
+                    historias.map((historia) => (
+                        <div key={historia._id} className="bg-gray-800 p-6 rounded-lg shadow-lg">
+                            {historia.imagen && (
+                                <img
+                                    src={`http://localhost:5000${historia.imagen}`} 
+                                    alt={historia.titulo}
+                                    className="w-full h-48 object-cover rounded-md mb-4"
+                                />
+                            )}
+                            <h2 className="text-xl font-bold mb-2">{historia.titulo}</h2>
+                            <p className="text-gray-400">{historia.descripcion.substring(0, 100)}...</p>
 
-                        <div className="mt-4 flex justify-between">
-                            <Link to={`/editar-historia/${historia._id}`} className="bg-blue-500 px-3 py-2 rounded-md">
-                                Editar
-                            </Link>
-                            <button
-                                onClick={() => eliminarHistoria(historia._id)}
-                                className="bg-red-600 px-3 py-2 rounded-md"
-                            >
-                                Eliminar
-                            </button>
+                            <div className="mt-4 flex justify-between">
+                                <Link to={`/editar-historia/${historia._id}`} className="bg-blue-500 px-3 py-2 rounded-md">
+                                    Editar
+                                </Link>
+                                <button
+                                    onClick={() => eliminarHistoria(historia._id)}
+                                    className="bg-red-600 px-3 py-2 rounded-md"
+                                >
+                                    Eliminar
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ))
+                ) : (
+                    <p className="text-center col-span-3">No has creado ninguna historia aún.</p>
+                )}
             </div>
         </div>
     );
 };
 
 export default PerfilUsuario;
-
