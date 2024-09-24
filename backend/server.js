@@ -60,6 +60,8 @@ app.use('/api/stories', storyRoutes);
 const historiasRouter = require('./routes/historias');
 app.use('/api/historias', historiasRouter);
 
+app.use('/api', require('./routes/historias'));
+
 // Crear historia con imagen
 app.post('/historias', upload.single('imagen'), async (req, res) => {
   try {
@@ -84,7 +86,7 @@ app.post('/historias', upload.single('imagen'), async (req, res) => {
   }
 });
 
-app.get('/historias', async (req, res) => {
+app.get('/api/historias', async (req, res) => {
   try {
     const historias = await Historia.find();
     res.json(historias);

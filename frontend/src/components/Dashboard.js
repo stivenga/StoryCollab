@@ -6,6 +6,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import Modal from './Modal'; 
 import './Dashboard.css';
+import { Link } from 'react-router-dom';
 
 const NavBar = ({ handleLogout, onSearch, onGenreClick }) => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -98,6 +99,9 @@ const NavBar = ({ handleLogout, onSearch, onGenreClick }) => {
                 >
                     Cerrar sesión
                 </button>
+                <Link to="/historias" className="bg-blue-500 text-white px-4 py-2 rounded-md">
+                  Ver todas las historias
+               </Link>
             </div>
         </nav>
     );

@@ -7,6 +7,7 @@ import Dashboard from './components/Dashboard';
 import CrearHistoria from './components/Historias/CrearHistoria';
 import PerfilUsuario from './components/Historias/PerfilUsuario'; // Asegúrate de que la ruta sea correcta
 import EditarHistoria from './components/Historias/EditarHistoria';
+import Historias from './components/Historias';
 
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
                 <Route path="/crear-historia" element={<CrearHistoria />} />
                 <Route path="/perfil-usuario" element={<PerfilUsuario />} />
                 <Route path="/editar-historia/:id" element={<EditarHistoria />} />
+                <Route path="/historias" element={<Historias />} />
             </Routes>
         </Router>
     );
