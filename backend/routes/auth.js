@@ -55,44 +55,39 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// Ruta para iniciar sesión
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
+    const { email, password } = req.body;
 
-  try {
-      // Buscar el usuario por email
-      const user = await User.findOne({ email });
-      if (!user) {
-          return res.status(400).json({ msg: 'Usuario no encontrado' });
-      }
+    try {
+        // Buscar el usuario por email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ msg: 'Usuario no encontrado' });
+        }
 
-      // Verificar la contraseña
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-          return res.status(400).json({ msg: 'Contraseña incorrecta' });
-      }
+        // Verificar la contraseña
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ msg: 'Contraseña incorrecta' });
+        }
 
-      // Crear el token JWT
-      const payload = {
-          user: {
-              id: user.id
-          }
-      };
+        // Crear el token JWT con id y email
+        const token = jwt.sign(
+            {
+                user: {
+                    id: user.id,
+                    email: user.email // Incluye el email aquí
+                }
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
 
-      // Firmar el token
-      jwt.sign(
-          payload,
-          process.env.JWT_SECRET, // Clave secreta
-          { expiresIn: '1h' }, // Expira en 1 hora
-          (err, token) => {
-              if (err) throw err;
-              res.json({ token });
-          }
-      );
-  } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Error del servidor');
-  }
+        res.json({ token });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Error del servidor');
+    }
 });
 
 // Ruta protegida de ejemplo

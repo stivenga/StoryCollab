@@ -8,6 +8,7 @@ import CrearHistoria from './components/Historias/CrearHistoria';
 import PerfilUsuario from './components/Historias/PerfilUsuario'; // Asegúrate de que la ruta sea correcta
 import EditarHistoria from './components/Historias/EditarHistoria';
 
+
 function App() {
     return (
         <Router>
